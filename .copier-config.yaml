@@ -1,0 +1,48 @@
+# Changes here will be overwritten by Copier; do NOT edit manually
+_commit: v0.14.3
+_src_path: gh:entelecheia/hyperfast-python-template
+author: Pil Seong Yang
+build_and_release: false
+code_template_answers_file: .copier-hyfi-config.yaml
+code_template_source: ''
+codecov_graph_token: '[REPLACE_ME]'
+copyright_year: 2024
+documentaion_tool: jupyter-book
+documentation_url: https://ypilseong.github.io/LectureSync
+email: lal4995@gmail.com
+favicon_path: ''
+friendly_name: LectureSync
+github_repo_name: LectureSync
+github_username: ypilseong
+google_analytics_id: ''
+logo_path: ''
+main_branch: main
+open_link: false
+package_name: lecturesync
+package_scripts:
+- lecturesync = 'lecturesync.__cli__:main'
+poe_task_files:
+- .tasks.toml
+- .tasks-extra.toml
+project_description: 'LectureSync is an advanced platform that converts lecture recordings
+    into summarized text and offers an interactive Q&A system powered by state-of-the-art
+    speech-to-text and natural language processing technologies, enabling users to
+    quickly access and comprehend key information while facilitating deeper engagement
+    with educational content.
+
+
+
+
+
+
+
+    '
+project_license: MIT
+project_name: LectureSync
+project_short_description: LectureSync transforms lecture recordings into summarized
+    text and provides an interactive Q&A system to enhance learning efficiency.
+upload_to_release: false
+upload_to_repository: false
+use_launch_buttons: false
+use_source_code_skeleton: true
+

@@ -1,13 +1,15 @@
-# LectureSync
+# Home
 
-
+[![pypi-image]][pypi-url]
 [![version-image]][release-url]
 [![release-date-image]][release-url]
 [![license-image]][license-url]
-[![codecov][codecov-image]][codecov-url]
 [![jupyter-book-image]][docs-url]
+[![codecov][codecov-image]][codecov-url]
 
 <!-- Links: -->
+[hyperfast python template]: https://github.com/entelecheia/hyperfast-python-template
+
 [codecov-image]: https://codecov.io/gh/ypilseong/LectureSync/branch/main/graph/badge.svg?token=[REPLACE_ME]
 [codecov-url]: https://codecov.io/gh/ypilseong/LectureSync
 [pypi-image]: https://img.shields.io/pypi/v/LectureSync
@@ -29,7 +31,7 @@ LectureSync transforms lecture recordings into summarized text and provides an i
 
 - Documentation: [https://ypilseong.github.io/LectureSync][docs-url]
 - GitHub: [https://github.com/ypilseong/LectureSync][repo-url]
-
+- PyPI: [https://pypi.org/project/LectureSync][pypi-url]
 
 LectureSync is an advanced platform that converts lecture recordings into summarized text and offers an interactive Q&A system powered by state-of-the-art speech-to-text and natural language processing technologies, enabling users to quickly access and comprehend key information while facilitating deeper engagement with educational content.
 
@@ -51,3 +53,8 @@ Contributions are welcome! Please see the [contributing guidelines] for more inf
 ## License
 
 This project is released under the [MIT License][license-url].
+
+## Table of Contents
+
+```{tableofcontents}
+```
