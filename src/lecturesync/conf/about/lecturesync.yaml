@@ -1,0 +1,6 @@
+_open_link_: False
+name: "LectureSync"
+authors: "Pil Seong Yang <lal4995@gmail.com>"
+description: "LectureSync transforms lecture recordings into summarized text and provides an interactive Q&A system to enhance learning efficiency."
+homepage: "https://ypilseong.github.io/LectureSync"
+license: "MIT"
