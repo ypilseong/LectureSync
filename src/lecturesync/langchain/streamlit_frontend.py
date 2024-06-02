@@ -40,7 +40,7 @@ def handle_pdf_upload(uploaded_file):
 
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
-    st.session_state.messages = [{"role": "assistant", "content": "Welcome, let's unveil your future"}]
+    st.session_state.messages = [{"role": "assistant", "content": "안녕하세요 LectureSync chatbot 입니다. 강의 음성 파일 또는 강의 자료를 업로드 해주세요."}]
 
 # Display chat messages
 for message in st.session_state.messages:
