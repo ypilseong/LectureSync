@@ -1,11 +1,11 @@
-from rag import chatbot
+from rag import Chatbot
 import streamlit as st
 from pydub import AudioSegment
 from tempfile import NamedTemporaryFile
-
+import os
 # 챗봇 인스턴스 생성
-bot = chatbot()
 
+UPLOAD_DIR = "./data/doc_data"
 # Streamlit 페이지 설정
 st.set_page_config(page_title="LectureSync")
 with st.sidebar:
@@ -13,34 +13,37 @@ with st.sidebar:
 
 # Function for generating LLM response
 def generate_response(input):
-    result = bot.rag_chain.invoke(input)
+    result = bot.create_chain().invoke(input)
     return result
 
 # Function to handle file upload and conversion
 def handle_audio_video_upload(uploaded_file):
-    # Save uploaded file to a temporary file
-    with NamedTemporaryFile(delete=False, suffix=uploaded_file.name.split('.')[-1]) as temp_file:
+    # Save uploaded file to a specified directory
+    file_extension = uploaded_file.name.split('.')[-1]
+    temp_file_path = os.path.join(UPLOAD_DIR, uploaded_file.name)
+    
+    with open(temp_file_path, 'wb') as temp_file:
         temp_file.write(uploaded_file.getbuffer())
-        temp_file_path = temp_file.name
     
     # Convert to WAV if necessary
     audio = AudioSegment.from_file(temp_file_path)
-    audio.export(temp_file_path + ".wav", format="wav")
+    wav_file_path = temp_file_path + ".wav"
+    audio.export(wav_file_path, format="wav")
     
-    # Read the WAV file data
-    with open(temp_file_path + ".wav", "rb") as f:
-        audio_data = f.read()
-    
-    return audio_data
+    return wav_file_path
 
 def handle_pdf_upload(uploaded_file):
-    # Read PDF file data
-    pdf_data = uploaded_file.getbuffer()
-    return pdf_data
+    # Save uploaded PDF file to a specified directory
+    temp_file_path = os.path.join(UPLOAD_DIR, uploaded_file.name)
+    
+    with open(temp_file_path, 'wb') as temp_file:
+        temp_file.write(uploaded_file.getbuffer())
+    
+    return temp_file_path
 
 # Store LLM generated responses
 if "messages" not in st.session_state.keys():
-    st.session_state.messages = [{"role": "assistant", "content": "안녕하세요 LectureSync chatbot 입니다. 강의 음성 파일 또는 강의 자료를 업로드 해주세요."}]
+    st.session_state.messages = [{"role": "assistant", "content": "안녕하세요 LectureSync ChatBot 입니다. 강의 음성 파일 또는 강의 자료를 업로드 해주세요."}]
 
 # Display chat messages
 for message in st.session_state.messages:
@@ -57,16 +60,16 @@ pdf_files = []
 for uploaded_file in uploaded_files:
     file_type = uploaded_file.type.split('/')[0]
     
-    if file_type == 'audio' or file_type == 'video':
+    if file_type =='audio' or file_type == 'video':
         audio_data = handle_audio_video_upload(uploaded_file)
-        audio_files.append({"name": uploaded_file.name, "data": audio_data})
+        audio_files.append(audio_data)
         st.session_state.messages.append({"role": "user", "content": f"Uploaded audio/video file: {uploaded_file.name}"})
         with st.chat_message("user"):
             st.write(f"Uploaded audio/video file: {uploaded_file.name}")
     
     elif uploaded_file.type == 'application/pdf':
         pdf_data = handle_pdf_upload(uploaded_file)
-        pdf_files.append({"name": uploaded_file.name, "data": pdf_data})
+        pdf_files.append(pdf_data)
         st.session_state.messages.append({"role": "user", "content": f"Uploaded PDF file: {uploaded_file.name}"})
         with st.chat_message("user"):
             st.write(f"Uploaded PDF file: {uploaded_file.name}")
@@ -80,6 +83,9 @@ if audio_files or pdf_files:
             response = f"Files processed successfully. Audio files: {len(audio_files)}, PDF files: {len(pdf_files)}."
             st.write(response)
 
+# 챗봇 인스턴스 생성 (수정된 부분)
+bot = Chatbot(pdf_files, audio_files)
+
 # User-provided prompt
 if input := st.chat_input():
     st.session_state.messages.append({"role": "user", "content": input})
@@ -90,7 +96,7 @@ if input := st.chat_input():
 if st.session_state.messages[-1]["role"] != "assistant" and 'input' in locals():
     with st.chat_message("assistant"):
         with st.spinner("Getting your answer from mystery stuff.."):
-            response = generate_response(input) 
+            response = generate_response(input)
             st.write(response) 
     message = {"role": "assistant", "content": response}
     st.session_state.messages.append(message)
