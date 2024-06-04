@@ -21,13 +21,11 @@ def summarization():
                                               truncation=True)
     model = AutoModelForCausalLM.from_pretrained("beomi/Llama-3-Open-Ko-8B-Instruct-preview")
 
-    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer,max_length=2048,truncation=True,device=0)
+    pipe = pipeline("text-generation", model=model, tokenizer=tokenizer,max_length=2048,truncation=True,pad_token_id=tokenizer.eos_token_id,device=0)
     gpu_llm = HuggingFacePipeline(
         pipeline = pipe,
         batch_size=2,  # 배치 크기s를 조정합니다. GPU 메모리와 모델 크기에 따라 적절히 설정합니다.
         pipeline_kwargs={
-            "max_new_tokens": 512,
-            "max_length": 1024,
             "do_sample": True,
             "temperature": 0.5
         }  # 모델에 전달할 추가 인자를 설정합니다.
@@ -40,8 +38,8 @@ def summarization():
     
     text_splitter = CharacterTextSplitter.from_tiktoken_encoder(
         separator="\n\n",  # 분할기준
-        chunk_size=1000,   # 사이즈
-        chunk_overlap=50, # 중첩 사이즈
+        chunk_size=700,   # 사이즈
+        chunk_overlap=200, # 중첩 사이즈
     )
     splits = text_splitter.split_documents(docs)
     
@@ -122,7 +120,7 @@ def summarization():
     #     file.write(final_summary)
 
     # return response
-    result = map_reduce_chain.run(splits)
+    result = map_reduce_chain.invoke(splits)
     print(result)
 
 summarization()
