@@ -8,7 +8,7 @@ from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.chat_models import ChatOllama
 
 class Chatbot:
-    def __init__(self, pdf_path=None, txt_path=None, txt=None):
+    def __init__(self, pdf_path=None, txt_path=None, txt = None):
         self.pdf_path = pdf_path
         self.txt_path = txt_path
         self.txt = txt
@@ -23,7 +23,7 @@ class Chatbot:
                 self.docs += txt_loader.load()
         if txt:
             self.docs += self.txt
-        
+
         self.vectorstore = None
         self.retriever = None
         if self.docs:
@@ -36,13 +36,12 @@ class Chatbot:
         self.chat_history = []
 
         self.prompt = ChatPromptTemplate.from_messages([
-            ("system", "친절한 챗봇으로서 상대방의 요청에 최대한 자세하고 친절하게 답하자. 대답은 다음 '{context}' 기반으로 대답해. 모든 대답은 한국어(Korean)으로 대답해줘. 사용자가 질문하고 너가 답한 내용은 '{chat_history}' 이러한 내용이야."),
+            ("system", "친절한 챗봇으로서 상대방의 요청에 최대한 자세하고 친절하게 답하자. 대답은 다음 context 기반으로 대답해. 모든 대답은 한국어(Korean)으로 대답해줘."),
             ("human", "{question}")
         ])
 
         self.llm = ChatOllama(base_url='http://172.16.229.33:11436',
-                              model='EEVE-Korean-Instruct-10.8B',
-                              temperature=0.4)
+                              model='EEVE-Korean-Instruct-10.8B')
 
     @staticmethod
     def format_docs(docs):
@@ -55,14 +54,14 @@ class Chatbot:
     def create_chain(self):
         if self.retriever:
             rag_chain = (
-                {"context": self.retriever | self.format_docs, "question": RunnablePassthrough(), "chat_history": RunnablePassthrough()}
+                {"context": self.retriever | self.format_docs, "question": RunnablePassthrough()}
                 | self.prompt
                 | self.llm
                 | StrOutputParser()
             )
         else:
             rag_chain = (
-                {"context": RunnablePassthrough(), "question": RunnablePassthrough(), "chat_history": RunnablePassthrough()}
+                {"context": RunnablePassthrough(), "question": RunnablePassthrough()}
                 | self.prompt
                 | self.llm
                 | StrOutputParser()
@@ -70,13 +69,10 @@ class Chatbot:
         return rag_chain
 
     def chat(self, question):
-        # chat_history = ''
-        # if self.chat_history is not None:
-        chat_history = "\n".join([f"{role}: {text}" for role, text in self.chat_history])
-        inputs = {"context": self.retriever, "question": question, "chat_history": chat_history}
+        context = "\n".join([f"{role}: {text}" for role, text in self.chat_history])
+        inputs = {"context": context, "question": question}
         chain = self.create_chain()
         response = chain.invoke(inputs)
-        self.add_to_history(question, response)
-        return response
+        self.add_to_history(question, response["text"])
+        return response["text"]
 
-    

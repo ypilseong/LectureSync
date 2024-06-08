@@ -8,7 +8,7 @@ from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChai
 from langchain_community.chat_models import ChatOllama
 from langchain_community.chat_models import ChatOpenAI
 class DocumentSummarizer:
-    def __init__(self, pdf_path, model_url, model_name, temperature=0, chunk_size=2000, chunk_overlap=200):
+    def __init__(self, pdf_path, model_url, model_name, temperature=0.3, chunk_size=2000, chunk_overlap=200):
         self.pdf_path = pdf_path
         self.model_url = model_url
         self.model_name = model_name

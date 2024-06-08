@@ -17,7 +17,7 @@ with st.sidebar:
 # Function for generating LLM response
 def generate_response(input):
     if 'rag_bot' in st.session_state:
-        result = st.session_state.rag_bot.create_chain().invoke(input)
+        result = st.session_state.rag_bot.chat(input)
         print(result)
     else:
         result = "Bot is not defined. Please upload files first."
@@ -67,7 +67,7 @@ for message in st.session_state.messages:
         st.write(message["content"])
 
 # File uploader for video, audio, or PDF
-uploaded_files = st.file_uploader("Upload a video, audio, or PDF file", type=["mp4", "mp3", "wav", "pdf"], accept_multiple_files=True)
+uploaded_files = st.file_uploader("Upload a video, audio, or PDF file", type=[ "pdf"], accept_multiple_files=True)
 
 file_type_list = ["mp4", "mp3", "wav"]
 audio_files = []
