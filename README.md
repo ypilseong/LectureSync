@@ -36,7 +36,34 @@ LectureSync is an advanced platform that converts lecture recordings into summar
 
 
 
+## Quick Start
 
+To quickly get started with LectureSync, follow these steps:
+
+1. Clone the repository:
+    ```bash
+    git clone https://github.com/ypilseong/LectureSync.git
+    ```
+2. Navigate to the project directory:
+    ```bash
+    cd LectureSync
+    ```
+3. Install the required dependencies:
+    ```bash
+    pip install -r requirements.txt
+    ```
+4. Run the Streamlit application:
+    ```bash
+    streamlit run src/lecturesync/langchain/streamlit_frontend.py
+    ```
+
+> **Note:** Ensure you update the model configuration in `streamlit_frontend.py` to match your desired settings.
+> **note**Example(Using Ollama Custom Model)
+> If you want to use a custom Ollama model, modify the following line in `streamlit_frontend.py`:
+> ```python
+> model_url = 'Ollama URL'
+> model_name = 'Your custom Model'
+> ```
 
 
 

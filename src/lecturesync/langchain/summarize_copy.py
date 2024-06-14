@@ -2,14 +2,22 @@ import os
 from langchain.chains.combine_documents.stuff import StuffDocumentsChain
 from langchain.chains.llm import LLMChain
 from langchain_core.prompts import PromptTemplate
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChain, ReduceDocumentsChain
 from langchain_community.chat_models import ChatOllama
 from langchain_community.chat_models import ChatOpenAI
 class DocumentSummarizer:
-    def __init__(self, pdf_path, model_url, model_name, temperature=0.3, chunk_size=2000, chunk_overlap=200):
+    def __init__(self,
+                 pdf_path=None,
+                 txt_path=None,
+                 model_url='http://172.16.229.33:11436',
+                 model_name='EEVE-Korean-Instruct-10.8B',
+                 temperature=0.3,
+                 chunk_size=2000,
+                 chunk_overlap=200):
         self.pdf_path = pdf_path
+        self.txt_path = txt_path
         self.model_url = model_url
         self.model_name = model_name
         self.temperature = temperature
@@ -21,9 +29,17 @@ class DocumentSummarizer:
         os.environ["HF_HOME"] = "./data/llm_model/"
 
     def load_documents(self):
-        for file_path in self.pdf_path:
-            loader = PyPDFLoader(file_path)
-        return loader.load()
+        docs = []
+        if self.pdf_path:
+            for file_path in self.pdf_path:
+                pdf_loader = PyPDFLoader(file_path)
+                docs.extend(pdf_loader.load())
+        
+        if self.txt_path:
+            for file_path in self.txt_path:
+                txt_loader = TextLoader(file_path)
+                docs.extend(txt_loader.load())
+        return docs
 
     def split_documents(self, docs):
         text_splitter = CharacterTextSplitter.from_tiktoken_encoder(
@@ -48,7 +64,7 @@ class DocumentSummarizer:
         - 핵심 내용에 대한 언급
         - 글자만 생성해
         CONTEXT:
-        {context}
+        {map}
         
         답변:"""
         map_prompt = PromptTemplate.from_template(map_prompt_template)
@@ -61,7 +77,7 @@ class DocumentSummarizer:
         - 핵심 내용에 대한 언급
         - 글자만 생성해
         CONTEXT:
-        {context}
+        {pages}
         
         답변:"""
         reduce_prompt = PromptTemplate.from_template(reduce_template)
@@ -76,9 +92,9 @@ class DocumentSummarizer:
         )
         
         combine_documents_chain = StuffDocumentsChain(
-            llm_chain=reduce_chain,
+            llm_chain=map_chain,
             document_prompt=document_prompt,
-            document_variable_name="context"
+            document_variable_name="map"
         )
 
         reduce_documents_chain = ReduceDocumentsChain(
@@ -88,9 +104,9 @@ class DocumentSummarizer:
         )
 
         return MapReduceDocumentsChain(
-            llm_chain=map_chain,
+            llm_chain=reduce_chain,
             reduce_documents_chain=reduce_documents_chain,
-            document_variable_name="context",
+            document_variable_name="pages",
         )
 
     def summarize(self):

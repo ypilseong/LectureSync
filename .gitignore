@@ -38,3 +38,9 @@ data/
 
 *.fst
 *.zip
+
+# key
+.key/
+
+# ffmpeg
+ffmpeg/
