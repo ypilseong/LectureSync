@@ -3,8 +3,7 @@ from summarize_copy import DocumentSummarizer
 import streamlit as st
 from pydub import AudioSegment
 import os
-from io import BytesIO
-import chardet
+from stt import transcribe_audio
 import datetime
 
 # 챗봇 인스턴스 생성
@@ -26,7 +25,7 @@ def generate_response(input):
     return result
 
 
-def summary_doc(files):
+def summary_doc():
     if 'summarizer' in st.session_state:
         result = st.session_state.summarizer.summarize()
     else:
@@ -44,18 +43,31 @@ def save_summary(txt):
 # Function to handle file upload and conversion
 def handle_audio_video_upload(uploaded_file):
     # Save uploaded file to a specified directory
-    file_extension = uploaded_file.name.split('.')[-1]
+    file_extension = uploaded_file.type.split('/')[-1]
     temp_file_path = os.path.join(UPLOAD_DIR, uploaded_file.name)
     
     with open(temp_file_path, 'wb') as temp_file:
         temp_file.write(uploaded_file.getbuffer())
     
     # Convert to WAV if necessary
-    audio = AudioSegment.from_file(temp_file_path)
-    wav_file_path = temp_file_path + ".wav"
-    audio.export(wav_file_path, format="wav")
+    # option.1
+    # if file_extension == 'video':
+    #     if temp_file_path.split('.')[-1] == 'mp4':
+    #         audio = AudioSegment.from_file(temp_file_path, format="mp4")
+    #         wav_file_path = temp_file_path + ".wav"
+    #         audio.export(wav_file_path, format="wav")
+    #     else:
+    #         temp_file_path.split('.')[-1] == 'mp3'
+    #         audio = AudioSegment.from_file(temp_file_path, format="mp3")
+    #         wav_file_path = temp_file_path + ".wav"
+    #         audio.export(wav_file_path, format="wav")
+    # option.2 
+    # if temp_file_path.split('.')[-1] != 'wav':
+    #     audio = AudioSegment.from_file(temp_file_path)
+    #     wav_file_path = temp_file_path + ".wav"
+    #     audio.export(wav_file_path, format="wav")
     
-    return wav_file_path
+    return temp_file_path
 
 def handle_pdf_upload(uploaded_file):
     # Save uploaded PDF file to a specified directory
@@ -78,7 +90,7 @@ for message in st.session_state.messages:
 # File uploader for video, audio, or PDF
 uploaded_files = st.file_uploader("Upload a video, audio, or PDF file", type=[ "pdf"], accept_multiple_files=True)
 
-file_type_list = ["mp4", "mp3", "wav"]
+
 audio_files = []
 pdf_files = []
 txt_files = []
@@ -87,36 +99,42 @@ if uploaded_files:
     for uploaded_file in uploaded_files:
         file_type = uploaded_file.type.split('/')[-1]
         
-        # if file_type in file_type_list:
-        #     audio_data = handle_audio_video_upload(uploaded_file)
-        #     audio_files.append(audio_data)
-        #     st.session_state.messages.append({"role": "user", "content": f"Uploaded audio/video file: {uploaded_file.name}"})
-        #     with st.chat_message("user"):
-        #         st.write(f"Uploaded audio/video file: {uploaded_file.name}")
+        if file_type == 'audio' or file_type == 'video':
+            audio_data = handle_audio_video_upload(uploaded_file)
+            audio_files.append(audio_data)
+            for audio_file in audio_files:
+                stt_file = transcribe_audio(audio_file)
+                stt_path = audio_file + '.txt'
+                txt_files.append(stt_path)
+                with open(stt_path, 'wb') as stt:
+                    stt.write(stt_file)
+            st.session_state.messages.append({"role": "user", "content": f"Uploaded audio/video file: {uploaded_file.name}"})
+            with st.chat_message("user"):
+                st.write(f"Uploaded audio/video file: {uploaded_file.name}")
         
-        # elif file_type == 'pdf':
-        #     pdf_data = handle_pdf_upload(uploaded_file)
-        #     pdf_files.append(pdf_data)
-        #     st.session_state.messages.append({"role": "user", "content": f"Uploaded PDF file: {uploaded_file.name}"})
-        #     with st.chat_message("user"):
-        #         st.write(f"Uploaded PDF file: {uploaded_file.name}")
+        elif uploaded_file.type == 'application/pdf':
+            pdf_data = handle_pdf_upload(uploaded_file)
+            pdf_files.append(pdf_data)
+            st.session_state.messages.append({"role": "user", "content": f"Uploaded PDF file: {uploaded_file.name}"})
+            with st.chat_message("user"):
+                st.write(f"Uploaded PDF file: {uploaded_file.name}")
 
-        pdf_data = handle_pdf_upload(uploaded_file)
-        pdf_files.append(pdf_data)
-        st.session_state.messages.append({"role": "user", "content": f"Uploaded PDF file: {uploaded_file.name}"})
-        with st.chat_message("user"):
-            st.write(f"Uploaded PDF file: {uploaded_file.name}")
+        # pdf_data = handle_pdf_upload(uploaded_file)
+        # pdf_files.append(pdf_data)
+        # st.session_state.messages.append({"role": "user", "content": f"Uploaded PDF file: {uploaded_file.name}"})
+        # with st.chat_message("user"):
+        #     st.write(f"Uploaded PDF file: {uploaded_file.name}")
             
     # Add a button to process the uploaded files
-    if st.button("Process Files"):
-        if pdf_files:
+    if st.button("문서 요약"):
+        if pdf_files or audio_files:
             st.session_state.messages.append({"role": "assistant", "content": "Processing uploaded files."})
             with st.chat_message("assistant"):
                 with st.spinner("Processing your files..."):
                     model_url = 'http://172.16.229.33:11436'
                     model_name = 'EEVE-Korean-Instruct-10.8B'
-                    st.session_state.summarizer = DocumentSummarizer(pdf_path=pdf_files, model_url=model_url, model_name=model_name)
-                    summary = summary_doc(pdf_files)
+                    st.session_state.summarizer = DocumentSummarizer(pdf_path=pdf_files, txt_path=txt_files, model_url=model_url, model_name=model_name)
+                    summary = summary_doc()
                     response = f"요약이 끝났어요! 요약한 내용은 다음과 같아요: {summary}"
                     st.write(response)
                     txt_file = save_summary(response)

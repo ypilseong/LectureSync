@@ -1,5 +1,5 @@
 from langchain_core.prompts import ChatPromptTemplate
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter, CharacterTextSplitter
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_community.vectorstores import FAISS
 from langchain_core.output_parsers import StrOutputParser
@@ -8,29 +8,49 @@ from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 from langchain_community.chat_models import ChatOllama
 
 class Chatbot:
-    def __init__(self, pdf_path=None, txt_path=None, txt=None):
+    def __init__(self, pdf_path=None, txt_path=None, txt=None, chunk_size=2000, chunk_overlap=200):
         self.pdf_path = pdf_path
         self.txt_path = txt_path
         self.txt = txt
+        self.chunk_size = chunk_size
+        self.chunk_overlap = chunk_overlap
+        self.docs_pdf = []
         self.docs = []
         if pdf_path:
-            for file_path in pdf_path:    
+            for file_path in self.pdf_path:
                 pdf_loader = PyPDFLoader(file_path)
-                self.docs += pdf_loader.load()
+                self.docs_pdf += pdf_loader.load()
+        
         if txt_path:
-            for file_path in txt_path:
+            for file_path in self.txt_path:
                 txt_loader = TextLoader(file_path)
                 self.docs += txt_loader.load()
-        if txt:
-            self.docs += self.txt
+        
         
         self.vectorstore = None
         self.retriever = None
+        
+        all_docs = []
+        if self.docs_pdf:
+            text_splitter = CharacterTextSplitter.from_tiktoken_encoder(
+                separator="\n\n",
+                chunk_size=self.chunk_size,
+                chunk_overlap=self.chunk_overlap,
+            )
+            self.splits_pdf = text_splitter.split_documents(self.docs_pdf)
+            all_docs.extend(self.splits_pdf)
+        
         if self.docs:
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
-            self.splits = text_splitter.split_text(self.docs)
-
-            self.vectorstore = FAISS.from_documents(documents=self.splits, embedding=HuggingFaceBgeEmbeddings())
+            text_splitter = CharacterTextSplitter.from_tiktoken_encoder(
+                separator="\n\n",
+                chunk_size=self.chunk_size,
+                chunk_overlap=self.chunk_overlap,
+            )
+            self.splits_doc = text_splitter.split_documents(self.docs)
+            all_docs.extend(self.splits_doc)
+        
+        if all_docs:
+            self.vectorstore = FAISS.from_documents(documents=all_docs, embedding=HuggingFaceBgeEmbeddings())
             self.retriever = self.vectorstore.as_retriever()
 
         self.chat_history = []
@@ -73,10 +93,8 @@ class Chatbot:
         # chat_history = ''
         # if self.chat_history is not None:
         chat_history = "\n".join([f"{role}: {text}" for role, text in self.chat_history])
-        inputs = {"context": self.retriever, "question": question, "chat_history": chat_history}
+        inputs = {"question": question, "chat_history": chat_history}
         chain = self.create_chain()
-        response = chain.invoke(inputs)
+        response = chain.invoke(question)
         self.add_to_history(question, response)
         return response
-
-    
