@@ -10,6 +10,7 @@ import datetime
 
 UPLOAD_DIR = "data/doc_data"
 UPLOAD_TXT_DIR = "data/doc_data/summary_txt_data/"
+UPLOAD_STT_DIR = "data/doc_data/stt_txt_data/"
 # Streamlit 페이지 설정
 st.set_page_config(page_title="LectureSync")
 with st.sidebar:
@@ -38,6 +39,12 @@ def save_summary(txt):
     file_txt_path = UPLOAD_TXT_DIR + file_name
     with open(file_txt_path, 'w', encoding='utf-8') as file:
         file.write(txt)
+    return file_txt_path
+
+def save_stt():
+    current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    file_name = f"text_{current_time}.txt"
+    file_txt_path = UPLOAD_STT_DIR + file_name
     return file_txt_path
 
 # Function to handle file upload and conversion
@@ -94,6 +101,7 @@ uploaded_files = st.file_uploader("Upload a video, audio, or PDF file", type=[ "
 audio_files = []
 pdf_files = []
 txt_files = []
+stt_files = []
 if uploaded_files:
     # Handle file upload and conversion
     for uploaded_file in uploaded_files:
@@ -104,10 +112,8 @@ if uploaded_files:
             audio_files.append(audio_data)
             for audio_file in audio_files:
                 stt_file = transcribe_audio(audio_file)
-                stt_path = audio_file + '.txt'
-                txt_files.append(stt_path)
-                with open(stt_path, 'wb') as stt:
-                    stt.write(stt_file)
+                stt_path = save_stt(stt_file)
+                stt_files.append(stt_path)
             st.session_state.messages.append({"role": "user", "content": f"Uploaded audio/video file: {uploaded_file.name}"})
             with st.chat_message("user"):
                 st.write(f"Uploaded audio/video file: {uploaded_file.name}")
@@ -139,7 +145,7 @@ if uploaded_files:
                     st.write(response)
                     txt_file = save_summary(response)
                     txt_files.append(txt_file)
-            st.session_state.rag_bot = Chatbot(pdf_path=pdf_files, txt_path=txt_files)
+            st.session_state.rag_bot = Chatbot(pdf_path=pdf_files, txt_path=txt_files, stt_txt_path = 'data/doc_data/summart_txt_data/output.txt')
         
         # Clear the uploaded files
         st.session_state.uploaded_files = []

@@ -11,6 +11,7 @@ import datetime
 
 UPLOAD_DIR = "data/doc_data"
 UPLOAD_TXT_DIR = "data/doc_data/summary_txt_data/"
+UPLOAD_STT_DIR = "data/doc_data/stt_txt_data/"
 # Streamlit 페이지 설정
 st.set_page_config(page_title="LectureSync")
 with st.sidebar:
@@ -25,10 +26,17 @@ def generate_response(input):
         result = "Bot is not defined. Please upload files first."
     return result
 
+def search_sentence(query):
+    if 'rag_bot' in st.session_state:
+        result = st.session_state.rag_bot.search_sentence(query)
+        print(result)
+    else:
+        result = "Bot is not defined. Please upload files first."
+    return result
 
 def summary_doc(files):
     if 'summarizer' in st.session_state:
-        result = st.session_state.summarizer.summarize()
+        result = st.session_state.summarizer.summarize(type='map_reduce')
     else:
         result = "Summarizer is not defined. Please upload files first."
     return result
@@ -39,6 +47,12 @@ def save_summary(txt):
     file_txt_path = UPLOAD_TXT_DIR + file_name
     with open(file_txt_path, 'w', encoding='utf-8') as file:
         file.write(txt)
+    return file_txt_path
+
+def save_stt():
+    current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    file_name = f"text_{current_time}.txt"
+    file_txt_path = UPLOAD_STT_DIR + file_name
     return file_txt_path
 
 # Function to handle file upload and conversion
@@ -121,7 +135,8 @@ if uploaded_files:
                     st.write(response)
                     txt_file = save_summary(response)
                     txt_files.append(txt_file)
-            st.session_state.rag_bot = Chatbot(pdf_path=pdf_files, txt_path=txt_files)
+                    stt_txt_path = ['data/doc_data/stt_txt_data/sentences.txt']
+            st.session_state.rag_bot = Chatbot(pdf_path=pdf_files, txt_path=txt_files, stt_txt_path = stt_txt_path)
         
         # Clear the uploaded files
         st.session_state.uploaded_files = []
@@ -142,3 +157,11 @@ if st.session_state.messages[-1]["role"] != "assistant" and 'input' in locals():
             st.write(response)
     message = {"role": "assistant", "content": response}
     st.session_state.messages.append(message)
+
+# 문장 검색을 트리거하는 버튼
+query = st.text_input("검색할 문장을 입력하세요:")
+if st.button("문장 검색"):
+    if query:
+        with st.spinner("문장을 검색하는 중..."):
+            search_results = search_sentence(query)
+            st.write(search_results)

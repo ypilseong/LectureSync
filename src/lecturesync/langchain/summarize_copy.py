@@ -4,9 +4,13 @@ from langchain.chains.llm import LLMChain
 from langchain_core.prompts import PromptTemplate
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain.text_splitter import CharacterTextSplitter
+from langchain_core.output_parsers import StrOutputParser
 from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChain, ReduceDocumentsChain
 from langchain_community.chat_models import ChatOllama
 from langchain_community.chat_models import ChatOpenAI
+
+os.environ["OPNEAI_API_KEY"] = os.environ.get("OPENAI_API_KEY")
+
 class DocumentSummarizer:
     def __init__(self,
                  pdf_path=None,
@@ -50,10 +54,11 @@ class DocumentSummarizer:
         return text_splitter.split_documents(docs)
 
     def create_llm(self):
-        return ChatOllama(base_url=self.model_url,
-                      model=self.model_name,
-                      temperature=self.temperature)
-        # return ChatOpenAI(model_name='gpt-3.5-turbo-0125')
+        # return ChatOllama(base_url=self.model_url,
+        #               model=self.model_name,
+        #               temperature=self.temperature)
+        return ChatOpenAI(temperature=0.1,
+                          model_name='gpt-4o')
 
     def create_map_reduce_chain(self, llm):
         # Define map prompt
@@ -63,6 +68,7 @@ class DocumentSummarizer:
         - 문장에 대한 연관성이 있음
         - 핵심 내용에 대한 언급
         - 글자만 생성해
+        - 최대한 많은 정보를 포함해
         CONTEXT:
         {map}
         
@@ -76,6 +82,7 @@ class DocumentSummarizer:
         - 문장에 대한 연관성이 있음
         - 핵심 내용에 대한 언급
         - 글자만 생성해
+        - 최대한 많은 정보를 포함해
         CONTEXT:
         {pages}
         
@@ -108,17 +115,38 @@ class DocumentSummarizer:
             reduce_documents_chain=reduce_documents_chain,
             document_variable_name="pages",
         )
-
-    def summarize(self):
+    def create_stuff_chain(self, llm):
+        stuff_template = """다음 문서(CONTEXT)를 기반으로 주요 내용을 한국어(Korean)로 요약해:
+        너는 다음과 같은 규칙을 따라야돼.
+        - 특수기호 제외
+        - 문장에 대한 연관성이 있음
+        - 핵심 내용에 대한 언급
+        - 글자만 생성
+        - 최대한 많은 정보를 포함
+        CONTEXT:
+        {pages}
+        
+        답변:"""
+        stuff_prompt = PromptTemplate.from_template(stuff_template)
+        stuff_chain = stuff_prompt | llm | StrOutputParser()
+        
+        return stuff_chain
+        
+    def summarize(self, type=None):
         docs = self.load_documents()
         splits = self.split_documents(docs)
         print(f'총 분할된 도큐먼트 수: {len(splits)}')
 
         llm = self.create_llm()
-        map_reduce_chain = self.create_map_reduce_chain(llm)
-
-        result = map_reduce_chain.invoke({"input_documents":splits}, return_only_outputs=True)
-        print(result)
-
-
-        return result['output_text']
+        if type == 'stuff':
+            stuff_chain = self.create_stuff_chain(llm)
+            result = stuff_chain.invoke({"pages":splits})
+            print(result)
+            return result
+        
+        if type == 'map_reduce':
+            map_reduce_chain = self.create_map_reduce_chain(llm)
+            result = map_reduce_chain.invoke({"input_documents":splits}, return_only_outputs=True)
+            print(result)
+            return result['output_text']
+        
