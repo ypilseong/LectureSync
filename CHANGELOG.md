@@ -1,5 +1,11 @@
 <!--next-version-placeholder-->
 
+## v0.3.0 (2024-06-24)
+
+### Feature
+
+* Update *_copy.py and stt.py by ypilseong ([`9a57abb`](https://github.com/ypilseong/LectureSync/commit/9a57abb49d73fb46eaa64d155f17c89d04086e07))
+
 ## v0.2.0 (2024-06-14)
 
 ### Feature
