@@ -28,11 +28,11 @@ def generate_response(input):
 
 def search_sentence(query):
     if 'rag_bot' in st.session_state:
-        result = st.session_state.rag_bot.search_sentence(query)
+        result, result_info = st.session_state.rag_bot.search_sentence(query)
         print(result)
     else:
         result = "Bot is not defined. Please upload files first."
-    return result
+    return result ,result_info
 
 def summary_doc(files):
     if 'summarizer' in st.session_state:
@@ -90,8 +90,8 @@ for message in st.session_state.messages:
         st.write(message["content"])
 
 # File uploader for video, audio, or PDF
-uploaded_files = st.file_uploader("Upload a video, audio, or PDF file", type=[ "pdf"], accept_multiple_files=True)
-
+uploaded_files = st.file_uploader("Upload a video, audio, or PDF file", type=[ "pdf", "mp4"], accept_multiple_files=True)
+print(uploaded_files)
 file_type_list = ["mp4", "mp3", "wav"]
 audio_files = []
 pdf_files = []
@@ -101,6 +101,8 @@ if uploaded_files:
     for uploaded_file in uploaded_files:
         file_type = uploaded_file.type.split('/')[-1]
         
+        if file_type == "mp4":
+            audio_files.append(uploaded_file)
         # if file_type in file_type_list:
         #     audio_data = handle_audio_video_upload(uploaded_file)
         #     audio_files.append(audio_data)
@@ -114,12 +116,12 @@ if uploaded_files:
         #     st.session_state.messages.append({"role": "user", "content": f"Uploaded PDF file: {uploaded_file.name}"})
         #     with st.chat_message("user"):
         #         st.write(f"Uploaded PDF file: {uploaded_file.name}")
-
-        pdf_data = handle_pdf_upload(uploaded_file)
-        pdf_files.append(pdf_data)
-        st.session_state.messages.append({"role": "user", "content": f"Uploaded PDF file: {uploaded_file.name}"})
-        with st.chat_message("user"):
-            st.write(f"Uploaded PDF file: {uploaded_file.name}")
+        if file_type == 'pdf':
+            pdf_data = handle_pdf_upload(uploaded_file)
+            pdf_files.append(pdf_data)
+            st.session_state.messages.append({"role": "user", "content": f"Uploaded PDF file: {uploaded_file.name}"})
+            with st.chat_message("user"):
+                st.write(f"Uploaded PDF file: {uploaded_file.name}")
             
     # Add a button to process the uploaded files
     if st.button("Process Files"):
@@ -153,15 +155,29 @@ if input := st.chat_input():
 if st.session_state.messages[-1]["role"] != "assistant" and 'input' in locals():
     with st.chat_message("assistant"):
         with st.spinner("Getting your answer from mystery stuff.."):
+            if audio_files:
+                st.video(audio_files[0], format="video/mp4", start_time=0, subtitles=None, end_time=None, loop=False, autoplay=False, muted=False)
+                sentence, sentence_info = search_sentence(input)
+                
+                if sentence_info is not None:
+                    for i in range(len(sentence)):
+                        with st.expander(f"문장: {i}"):
+                            response = f"{sentence[i]}"
+                            st.write("다음은 비디오의 해당 문장입니다:")
+                            st.write(response)
+                            if st.button(f"재생 {i}"):
+                                st.session_state[f'start_time_{i}'] = sentence_info[i]['start_time']
+                                st.session_state[f'end_time_{i}'] = sentence_info[i]['end_time']
+                                st.session_state['active_video'] = i
+
+            # Check if any video needs to be played
+            if 'active_video' in st.session_state:
+                active_video = st.session_state['active_video']
+                start_time = st.session_state.get(f'start_time_{active_video}', 0)
+                end_time = st.session_state.get(f'end_time_{active_video}', None)
+                st.video(audio_files[0], format="video/mp4", start_time=start_time, subtitles=None, end_time=end_time, loop=False, autoplay=True, muted=False)
             response = generate_response(input)
             st.write(response)
     message = {"role": "assistant", "content": response}
     st.session_state.messages.append(message)
 
-# 문장 검색을 트리거하는 버튼
-query = st.text_input("검색할 문장을 입력하세요:")
-if st.button("문장 검색"):
-    if query:
-        with st.spinner("문장을 검색하는 중..."):
-            search_results = search_sentence(query)
-            st.write(search_results)

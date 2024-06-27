@@ -119,17 +119,19 @@ class Chatbot:
 
     def find_sentence_time(self, query):
         if not self.corpus_embeddings:
-            return "문장 검색이 불가능합니다."
+            return "문장 검색이 불가능합니다.", None
         query_embedding = HuggingFaceBgeEmbeddings().embed_documents([query])
         query_embedding = torch.tensor(query_embedding)
         hits = util.semantic_search(query_embedding, torch.tensor(self.corpus_embeddings), top_k=3)
         hits = hits[0]
 
         response = []
+        response_info = []
         for hit in hits:
             sentence_info = self.sentences_data[hit['corpus_id']]
             response.append(f"Sentence: {sentence_info['text']}, Start Time: {sentence_info['start_time']}, End Time: {sentence_info['end_time']}")
-        return "\n".join(response)
+            response_info.append(sentence_info)
+        return response, response_info
 
     @staticmethod
     def format_docs(docs):
@@ -168,6 +170,6 @@ class Chatbot:
 
     def search_sentence(self, question):
         
-        sentence_time_info = self.find_sentence_time(question)
+        sentence, time_info = self.find_sentence_time(question)
         
-        return sentence_time_info
+        return sentence, time_info
