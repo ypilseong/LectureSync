@@ -158,11 +158,36 @@ if input := st.chat_input():
     with st.chat_message("user"):
         st.write(input)
 
-# Generate a new response if last message is not from assistant
 if st.session_state.messages[-1]["role"] != "assistant" and 'input' in locals():
     with st.chat_message("assistant"):
         with st.spinner("Getting your answer from mystery stuff.."):
+            if audio_files:
+                st.video(audio_files[0], format="video/mp4", start_time=0, subtitles=None, end_time=None, loop=False, autoplay=False, muted=False)
+                sentence, sentence_info = search_sentence(input)
+                
+                if sentence_info is not None:
+                    for i in range(len(sentence)):
+                        with st.expander(f"문장: {i}"):
+                            response = f"{sentence[i]}"
+                            st.write("다음은 비디오의 해당 문장입니다:")
+                            st.write(response)
+                            if st.button(f"재생 {i}"):
+                                start_time = sentence_info[i]['start_time']
+                                end_time = sentence_info[i]['end_time']
+                                js_code = f"""
+                                    <script>
+                                        var video = document.getElementsByTagName('video')[0];
+                                        video.currentTime = {start_time};
+                                        video.play();
+                                        setTimeout(function() {{
+                                            video.pause();
+                                        }}, {int((end_time - start_time) * 1000)});
+                                    </script>
+                                """
+                                st.components.v1.html(js_code, height=0)
+
             response = generate_response(input)
             st.write(response)
     message = {"role": "assistant", "content": response}
     st.session_state.messages.append(message)
+
