@@ -1,5 +1,11 @@
 <!--next-version-placeholder-->
 
+## v0.4.0 (2024-06-30)
+
+### Feature
+
+* Play the uploaded video with popover and other .py files update by ypilseong ([`1e82c8a`](https://github.com/ypilseong/LectureSync/commit/1e82c8afbd26f69f4321a0f8ba5293bffad91ace))
+
 ## v0.3.0 (2024-06-24)
 
 ### Feature

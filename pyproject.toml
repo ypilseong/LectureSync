@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "LectureSync"
-version = "0.3.0"
+version = "0.4.0"
 description = "LectureSync transforms lecture recordings into summarized text and provides an interactive Q&A system to enhance learning efficiency."
 authors = ["Pil Seong Yang <lal4995@gmail.com>"]
 license = "MIT"
