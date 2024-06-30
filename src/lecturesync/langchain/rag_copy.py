@@ -22,22 +22,30 @@ class Chatbot:
         self.docs_pdf = []
         self.docs_stt = []
         self.docs = []
+        self.all_docs_name = ''
 
+            
         if pdf_path:
             for file_path in self.pdf_path:
                 pdf_loader = PyPDFLoader(file_path)
                 self.docs_pdf += pdf_loader.load()
-        
+                file_name = file_path.split('/')[-1]
+                self.all_docs_name +=  file_name + ', '
+
         if txt_path:
             for file_path in self.txt_path:
                 txt_loader = TextLoader(file_path)
                 self.docs += txt_loader.load()
-        
+                file_name = file_path.split('/')[-1]
+                self.all_docs_name +=  file_name + ', '
+
         if stt_txt_path:
             for file_path in self.stt_txt_path:
                 txt_loader = TextLoader(file_path)
                 self.docs_stt += txt_loader.load()
-        
+                file_name = file_path.split('/')[-1]
+                self.all_docs_name +=  file_name + ', '
+
         self.vectorstore = None
         self.retriever = None
         
@@ -116,7 +124,15 @@ class Chatbot:
             })
 
         return sentences_data
+    
+    @staticmethod
+    def split_files(file_path):
+        files_name_list = []
+        for file in file_path:
+            files_name_list.append(file.split('/')[-1])
 
+        return files_name_list
+    
     def find_sentence_time(self, query):
         if not self.corpus_embeddings:
             return "문장 검색이 불가능합니다.", None
@@ -129,7 +145,7 @@ class Chatbot:
         response_info = []
         for hit in hits:
             sentence_info = self.sentences_data[hit['corpus_id']]
-            response.append(f"Sentence: {sentence_info['text']}, Start Time: {sentence_info['start_time']}, End Time: {sentence_info['end_time']}")
+            response.append(f"언급된 문장: {sentence_info['text']}, 시작 시간: {sentence_info['start_time']}, 끝난 시간: {sentence_info['end_time']}")
             response_info.append(sentence_info)
         return response, response_info
 
@@ -162,7 +178,6 @@ class Chatbot:
         # chat_history = ''
         # if self.chat_history is not None:
         chat_history = "\n".join([f"{role}: {text}" for role, text in self.chat_history])
-        inputs = {"question": question, "chat_history": chat_history}
         chain = self.create_chain()
         response = chain.invoke(question)
         self.add_to_history(question, response)
