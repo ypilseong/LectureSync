@@ -177,26 +177,29 @@ if input := st.chat_input():
         st.write(input)
 
 # Generate a new response if last message is not from assistant
-if st.session_state.messages[-1]["role"] != "assistant" and 'input' in locals():
-    with st.chat_message("assistant"):
-        with st.spinner("자료 검색을 통한 답변 진행중.."):
-            if st.session_state.audio_files:
-                video_url = st.session_state.video_files[0]
-                st.video(video_url, format="video/mp4", start_time=0, subtitles=None, end_time=None, loop=False, autoplay=False, muted=False)
-                sentence, sentence_info = search_sentence(input)
-                
-                if sentence_info is not None:
-                    for i in range(len(sentence)):
-                        with st.expander(f"문장: {i}"):
-                            response = f"{sentence[i]}"
-                            st.write("다음은 비디오의 해당 문장입니다:")
-                            st.write(response)
-                            with st.popover(f"재생 {i}"):
-                                start_time = sentence_info[i]['start_time']
-                                end_time = sentence_info[i]['end_time']
-                                st.video(video_url, format="video/mp4", start_time=start_time, end_time=end_time, loop=False, autoplay=True, muted=False)
+try:
+    if st.session_state.messages[-1]["role"] != "assistant" and 'input' in locals():
+        with st.chat_message("assistant"):
+            with st.spinner("자료 검색을 통한 답변 진행중.."):
+                if st.session_state.audio_files:
+                    video_url = st.session_state.video_files[0]
+                    st.video(video_url, format="video/mp4", start_time=0, subtitles=None, end_time=None, loop=False, autoplay=False, muted=False)
+                    sentence, sentence_info = search_sentence(input)
+                    
+                    if sentence_info is not None:
+                        for i in range(len(sentence)):
+                            with st.expander(f"문장: {i}"):
+                                response = f"{sentence[i]}"
+                                st.write("다음은 비디오의 해당 문장입니다:")
+                                st.write(response)
+                                with st.popover(f"재생 {i}"):
+                                    start_time = sentence_info[i]['start_time']
+                                    end_time = sentence_info[i]['end_time']
+                                    st.video(video_url, format="video/mp4", start_time=start_time, end_time=end_time, loop=False, autoplay=True, muted=False)
 
-            response = generate_response(input)
-            st.write(response)
-    message = {"role": "assistant", "content": response}
-    st.session_state.messages.append(message)
+                response = generate_response(input)
+                st.write(response)
+        message = {"role": "assistant", "content": response}
+        st.session_state.messages.append(message)
+except:
+    pass
