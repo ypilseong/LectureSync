@@ -1,5 +1,11 @@
 <!--next-version-placeholder-->
 
+## v0.5.0 (2024-07-02)
+
+### Feature
+
+* All about LectureSync update by ypilseong ([`02a4b23`](https://github.com/ypilseong/LectureSync/commit/02a4b23d7df7cc41a5371d47bc8b2ea09412be6e))
+
 ## v0.4.0 (2024-06-30)
 
 ### Feature
