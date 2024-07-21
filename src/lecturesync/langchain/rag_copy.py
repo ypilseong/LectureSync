@@ -10,10 +10,10 @@ from langchain_community.chat_models import ChatOpenAI
 from sentence_transformers import SentenceTransformer, util
 import re
 import torch
-
+import os
 
 class Chatbot:
-    def __init__(self, pdf_path=None, txt_path=None, stt_txt_path=None, chunk_size=2000, chunk_overlap=200):
+    def __init__(self, pdf_path=None, txt_path=None, stt_txt_path=None, openai_key=None, chunk_size=2000, chunk_overlap=200):
         self.pdf_path = pdf_path
         self.txt_path = txt_path
         self.stt_txt_path = stt_txt_path
@@ -23,7 +23,9 @@ class Chatbot:
         self.docs_stt = []
         self.docs = []
         self.all_docs_name = ''
+        self.openai_key = openai_key
 
+        os.environ["OPENAI_API_KEY"] = self.openai_key
             
         if pdf_path:
             for file_path in self.pdf_path:
