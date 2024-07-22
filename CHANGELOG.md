@@ -1,5 +1,12 @@
 <!--next-version-placeholder-->
 
+## v0.6.0 (2024-07-22)
+
+### Feature
+
+* Update requirements.txt by ypilseong ([`76190cf`](https://github.com/ypilseong/LectureSync/commit/76190cfd51ab2ab3d992f7239e9980add71e678e))
+* Update about enable to input openai key by ypilseong ([`eab7390`](https://github.com/ypilseong/LectureSync/commit/eab73906fcde19ee0c6fcf448e90c1113584865b))
+
 ## v0.5.0 (2024-07-02)
 
 ### Feature
