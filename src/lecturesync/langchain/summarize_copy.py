@@ -9,13 +9,13 @@ from langchain.chains.combine_documents.map_reduce import MapReduceDocumentsChai
 from langchain_community.chat_models import ChatOllama
 from langchain_community.chat_models import ChatOpenAI
 
-os.environ["OPNEAI_API_KEY"] = os.environ.get("OPENAI_API_KEY")
 
 class DocumentSummarizer:
     def __init__(self,
                  pdf_path=None,
                  txt_path=None,
                  stt_txt_path=None,
+                 openai_key=None,
                  model_url='http://172.16.229.33:11436',
                  model_name='EEVE-Korean-Instruct-10.8B',
                  temperature=0.3,
@@ -29,8 +29,11 @@ class DocumentSummarizer:
         self.temperature = temperature
         self.chunk_size = chunk_size
         self.chunk_overlap = chunk_overlap
+        self.openai_key = openai_key
+
         
         # 설정된 환경 변수
+        os.environ["OPENAI_API_KEY"] = self.openai_key
         os.environ["TRANSFORMERS_CACHE"] = "./data/llm_model/"
         os.environ["HF_HOME"] = "./data/llm_model/"
 

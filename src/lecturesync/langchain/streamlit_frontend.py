@@ -93,6 +93,15 @@ if "stt_files" not in st.session_state:
     st.session_state.stt_files = []
 if "file_uploader_key" not in st.session_state:
     st.session_state.file_uploader_key = 0
+if "openai_api_key" not in st.session_state:
+    st.session_state.openai_api_key = ""
+
+# API key 입력 및 저장
+def save_openai_api_key():
+    st.session_state.openai_api_key = st.session_state.temp_openai_api_key
+
+st.sidebar.text_input("OpenAI API Key", key="temp_openai_api_key")
+st.sidebar.button("Save OpenAI API Key", on_click=save_openai_api_key)
 
 # Display chat messages
 for message in st.session_state.messages:
@@ -159,16 +168,17 @@ if st.session_state.pdf_files or st.session_state.stt_files:
                 with st.spinner("자료 요약중 ..."):
                     model_url = 'http://172.16.229.33:11436'
                     model_name = 'EEVE-Korean-Instruct-10.8B'
-                    st.session_state.summarizer = DocumentSummarizer(pdf_path=st.session_state.pdf_files, stt_txt_path=st.session_state.stt_files, model_url=model_url, model_name=model_name)
+                    st.session_state.summarizer = DocumentSummarizer(pdf_path=st.session_state.pdf_files, stt_txt_path=st.session_state.stt_files, model_url=model_url, model_name=model_name, openai_key=st.session_state.openai_api_key)
                     summary = summary_doc(st.session_state.pdf_files)
                     response = f"요약이 끝났어요! 요약한 내용은 다음과 같아요: {summary}"
                     st.write(response)
                     txt_file = save_summary(response)
                     st.session_state.txt_files.append(txt_file)
-            st.session_state.rag_bot = Chatbot(pdf_path=st.session_state.pdf_files, txt_path=st.session_state.txt_files, stt_txt_path=st.session_state.stt_files)
+            st.session_state.rag_bot = Chatbot(pdf_path=st.session_state.pdf_files, txt_path=st.session_state.txt_files, stt_txt_path=st.session_state.stt_files, openai_key=st.session_state.openai_api_key)
         
     
         
+search_sentences = st.checkbox("문장 검색 활성화")
 
 # User-provided prompt
 if input := st.chat_input():
@@ -181,7 +191,7 @@ try:
     if st.session_state.messages[-1]["role"] != "assistant" and 'input' in locals():
         with st.chat_message("assistant"):
             with st.spinner("자료 검색을 통한 답변 진행중.."):
-                if st.session_state.audio_files:
+                if search_sentences and st.session_state.audio_files:
                     video_url = st.session_state.video_files[0]
                     st.video(video_url, format="video/mp4", start_time=0, subtitles=None, end_time=None, loop=False, autoplay=False, muted=False)
                     sentence, sentence_info = search_sentence(input)
