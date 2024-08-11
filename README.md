@@ -1,6 +1,5 @@
 # LectureSync
 
-
 [![version-image]][release-url]
 [![release-date-image]][release-url]
 [![license-image]][license-url]
@@ -30,11 +29,21 @@ LectureSync transforms lecture recordings into summarized text and provides an i
 - Documentation: [https://ypilseong.github.io/LectureSync][docs-url]
 - GitHub: [https://github.com/ypilseong/LectureSync][repo-url]
 
-
 LectureSync is an advanced platform that converts lecture recordings into summarized text and offers an interactive Q&A system powered by state-of-the-art speech-to-text and natural language processing technologies, enabling users to quickly access and comprehend key information while facilitating deeper engagement with educational content.
 
+### Key Features
 
+- **Summarization:** Automatically generates summaries from lecture recordings, making it easier to review and study key points.
+- **Interactive Q&A:** Integrates with RAG (Retrieval-Augmented Generation) to allow users to ask questions about the content and receive accurate answers based on the uploaded material.
+- **Multi-format Support:** Upload videos, audio files, or PDFs to create an interactive learning experience.
+- **Contextual Search:** Enables users to search within the uploaded content, with the ability to locate and play back the specific segments of video where relevant questions are discussed.
+- **Google STT API:** Utilizes Google’s Speech-to-Text API for precise transcription of spoken content.
 
+## Video Overview
+
+Watch the following video to see LectureSync in action:
+
+[![LectureSync Overview](https://img.youtube.com/vi/e1wQfdDbssU/0.jpg)](https://www.youtube.com/watch?v=e1wQfdDbssU&t=17s)
 
 ## Quick Start
 
@@ -58,14 +67,12 @@ To quickly get started with LectureSync, follow these steps:
     ```
 
 > **Note:** Ensure you update the model configuration in `streamlit_frontend.py` to match your desired settings.
-> **note**Example(Using Ollama Custom Model)
+> **Example (Using Ollama Custom Model):**  
 > If you want to use a custom Ollama model, modify the following line in `streamlit_frontend.py`:
 > ```python
 > model_url = 'Ollama URL'
 > model_name = 'Your custom Model'
 > ```
-
-
 
 ## Changelog
 
